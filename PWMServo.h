@@ -86,7 +86,8 @@ class PWMServo
                              // position the servo until a subsequent write() happens
                              // Only works for 9 and 10.
     void detach();
-    void write(int angleArg); // specify the angle in degrees, 0 to 180
+    void write(int angleArg) { write(angleArg, false); } 
+    void write(int angleArg, bool invert); // specify the angle in degrees, 0 to 1000 (modified from the defaut PWMServo lib)
     uint8_t read() { return angle; }
     uint8_t attached();
 };

@@ -186,6 +186,39 @@ uint8_t PWMServo::attach(int pinArg, int min, int max)
 	return 1;
 }
 
+/**
+ * @brief Writes the duty cycle to analogWrite. This is 0-1000, instead of the
+ *        old version which was 0-180. Needed the extra resolution. 
+ * 
+ * @param angleArg 0-1000 corresponds to min to max PWM width.
+ * @param invert true is the output should be inverted (pulse low)
+ */
+void PWMServo::write(int angleArg, bool invert = false)
+{
+	if (pin >= NUM_DIGITAL_PINS) return;
+	if (angleArg < 0) angleArg = 0;
+	if (angleArg > 1000) angleArg = 1000;
+	uint32_t us = (((max16 - min16) * 8388 * angleArg) >> 11) + (min16 << 12); // us*256
+	uint32_t duty = (us * 3355) >> 18;
+  if (invert == true){
+    duty = UINT32_MAX - duty;
+  }
+
+#if TEENSYDUINO >= 137
+	noInterrupts();
+	uint32_t oldres = analogWriteResolution(16);
+	analogWrite(pin, duty);
+	analogWriteResolution(oldres);
+	interrupts();
+#else
+	analogWriteResolution(16);
+	analogWrite(pin, duty);
+#endif
+}
+
+// stock version below:
+
+/**
 void PWMServo::write(int angleArg)
 {
 	//Serial.printf("write, pin=%d, angle=%d\n", pin, angleArg);
@@ -210,6 +243,8 @@ void PWMServo::write(int angleArg)
 	analogWrite(pin, duty);
 #endif
 }
+**/
+
 
 uint8_t PWMServo::attached()
 {
